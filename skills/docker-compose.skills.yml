@@ -1,0 +1,54 @@
+name: irishealth-skills
+
+services:
+  iris-validate:
+    image: containers.intersystems.com/intersystems/irishealth-community:latest-em
+    container_name: iris-validate
+    init: true
+    restart: unless-stopped
+
+    # Separate published ports to avoid clashing with iris-dev.
+    ports:
+      - "1973:1972"   # SuperServer
+      - "52774:52773" # Management Portal
+
+    environment:
+      ISC_DATA_DIRECTORY: /external/dur
+
+    volumes:
+      # Durable data for validation workloads
+      - ./volumes/iris/validate/external:/external
+      - ./src:/opt/app/src
+
+    healthcheck:
+      test: ["CMD-SHELL", "iris session IRIS '##class(%SYSTEM.Process).LanguageMode()' >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
+
+  structurizr:
+    image: structurizr/structurizr
+    container_name: structurizr-local
+    init: true
+    restart: unless-stopped
+    command: ["local"]
+    ports:
+      - "8080:8080"
+    volumes:
+      # Select workspace folder via STRUCTURIZR_WORKSPACE (default: drawings/SOW)
+      - ${STRUCTURIZR_WORKSPACE:-./drawings/SOW}:/usr/local/structurizr
+    # Run as host user to avoid writable bind-mount issues.
+    user: "${UID:-1000}:${GID:-1000}"
+
+  mermaid:
+    image: ghcr.io/mermaid-js/mermaid-cli/mermaid-cli:latest
+    container_name: mermaid-cli-local
+    init: true
+    restart: unless-stopped
+    entrypoint: ["sh", "-lc", "sleep infinity"]
+    volumes:
+      # Select diagram workspace via MERMAID_WORKSPACE (default: drawings)
+      - ${MERMAID_WORKSPACE:-./drawings}:/data
+    # Run as host user to avoid writable bind-mount issues.
+    user: "${UID:-1000}:${GID:-1000}"
