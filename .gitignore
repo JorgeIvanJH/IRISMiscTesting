@@ -17,6 +17,7 @@ dur/log/*
 .coverage
 .coverage.*
 htmlcov/
+*.key
 
 # Notebook artifacts
 .ipynb_checkpoints/
