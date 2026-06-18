@@ -1,0 +1,26 @@
+dur/sandbox/mlflow 
+.vscode
+*.csv
+*.txt
+!requirements.txt
+!dur/models/LightGBM_1620_22122025.txt
+!dur/data/point_samples.csv
+__pycache__/
+*.pyc
+*.pyo
+*.log
+dur/models/*
+dur/log/*
+!dur/log/MLpipelineLogs.log
+# Python test/cache artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Notebook artifacts
+.ipynb_checkpoints/
+
+.venv/
+venv/
+env/
