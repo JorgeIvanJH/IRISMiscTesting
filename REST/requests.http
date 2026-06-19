@@ -1,0 +1,145 @@
+# MLpipeline REST API requests
+# Run REST/setup_rest.sh first, then execute requests in order.
+# Default development credentials are SuperUser:SYS.
+# If your password differs, update authToken below with base64("username:password").
+
+@baseUrl = http://localhost:52773/api/mlpipeline
+@authToken = U3VwZXJVc2VyOlNZUw==
+@json = application/json
+
+### Health check
+GET {{baseUrl}}/health
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### List point samples
+GET {{baseUrl}}/points
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Create a point sample
+# @name createPoint
+POST {{baseUrl}}/points
+Accept: {{json}}
+Content-Type: {{json}}
+Authorization: Basic {{authToken}}
+
+{
+  "x": 123.45,
+  "y": 67.89,
+  "label": "manual-rest-test",
+  "datetime": "2026-06-19 14:48:00"
+}
+
+### Get the point sample created above
+GET {{baseUrl}}/points/{{createPoint.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### List point samples after create
+GET {{baseUrl}}/points
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Create point sample - invalid body, missing required numeric x/y fields
+POST {{baseUrl}}/points
+Accept: {{json}}
+Content-Type: {{json}}
+Authorization: Basic {{authToken}}
+
+{
+  "label": "invalid-point"
+}
+
+### Get point sample - invalid non-integer id
+GET {{baseUrl}}/points/not-an-id
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Get point sample - expected 404 for missing id
+GET {{baseUrl}}/points/999999999
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### List predictions
+GET {{baseUrl}}/predictions
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Create a prediction for the point sample created above
+# @name createPrediction
+POST {{baseUrl}}/predictions
+Accept: {{json}}
+Content-Type: {{json}}
+Authorization: Basic {{authToken}}
+
+{
+  "pointsId": {{createPoint.response.body.$.id}},
+  "labelPred": "manual-rest-prediction",
+  "modelRunId": "manual-test-run",
+  "inferenceTime": 0.01,
+  "datetime": "2026-06-19 14:49:00"
+}
+
+### Get the prediction created above
+GET {{baseUrl}}/predictions/{{createPrediction.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### List predictions after create
+GET {{baseUrl}}/predictions
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Create prediction - invalid body, missing required integer pointsId field
+POST {{baseUrl}}/predictions
+Accept: {{json}}
+Content-Type: {{json}}
+Authorization: Basic {{authToken}}
+
+{
+  "labelPred": "invalid-prediction",
+  "modelRunId": "manual-test-run",
+  "inferenceTime": 0.01
+}
+
+### Get prediction - invalid non-integer id
+GET {{baseUrl}}/predictions/not-an-id
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Get prediction - expected 404 for missing id
+GET {{baseUrl}}/predictions/999999999
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Delete the prediction created above
+DELETE {{baseUrl}}/predictions/{{createPrediction.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Verify prediction delete - expected 404
+GET {{baseUrl}}/predictions/{{createPrediction.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Delete prediction - expected 404 for already deleted/missing id
+DELETE {{baseUrl}}/predictions/{{createPrediction.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Delete the point sample created above
+# Delete predictions that reference this point before deleting the point.
+DELETE {{baseUrl}}/points/{{createPoint.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Verify point delete - expected 404
+GET {{baseUrl}}/points/{{createPoint.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
+
+### Delete point sample - expected 404 for already deleted/missing id
+DELETE {{baseUrl}}/points/{{createPoint.response.body.$.id}}
+Accept: {{json}}
+Authorization: Basic {{authToken}}
